@@ -12,37 +12,23 @@
     tools:context="com.ramabox.testing.testingapp1.MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <TextView
-        android:layout_width="258dp"
-        android:layout_height="48dp"
-        android:text="Type your data and hit send! Then pray!"
-        android:id="@+id/textView"
-        android:layout_x="69dp"
-        android:layout_y="128dp"
-        android:textIsSelectable="false" />
-
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/editText"
-        android:layout_below="@+id/textView"
-        android:layout_marginTop="93dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:hint="Type your data here!"
-        android:layout_x="91dp"
-        android:layout_y="226dp" />
-
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Send!"
+        android:layout_width="150dp"
+        android:layout_height="89dp"
+        android:text="test"
         android:id="@+id/button"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:layout_x="128dp"
-        android:layout_y="292dp"
+        android:layout_x="143dp"
+        android:layout_y="333dp"
         android:onClick="sendCheck" />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Hit test and you wil go to the next screen"
+        android:id="@+id/textView3"
+        android:layout_x="13dp"
+        android:layout_y="158dp" />
 </AbsoluteLayout>
