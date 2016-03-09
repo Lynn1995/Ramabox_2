@@ -44,7 +44,6 @@ public class UARTInterface extends Activity
 	private byte status;
 	final int  maxnumbytes = 65536;
 
-	//public boolean datareceived = false;
 	public boolean READ_ENABLE = false;
 	public boolean accessory_attached = false;
 

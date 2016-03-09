@@ -1,6 +1,5 @@
 package com.ramabox.testing.testingapp1;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -8,7 +7,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -42,11 +40,9 @@ public class SendData extends AppCompatActivity {
     byte dataBit; /* 8:8bit, 7: 7bit */
     byte parity; /* 0: none, 1: odd, 2: even, 3: mark, 4: space */
     byte flowControl; /* 0:none, 1: flow control(CTS,RTS) */
-    public Context global_context;
     public boolean bConfiged = false;
     public SharedPreferences sharePrefSettings;
     Drawable originalDrawable;
-    public String act_string;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,28 +75,18 @@ public class SendData extends AppCompatActivity {
       /* flow control */
         flowControl = 0;
 
-      /*  act_string = getIntent().getAction();
-        if( -1 != act_string.indexOf("android.intent.action.MAIN")){
-            restorePreference();
-        }
-        else if( -1 != act_string.indexOf("android.hardware.usb.action.USB_ACCESSORY_ATTACHED")){
-            cleanPreference();
-        }
-*/
-
         configButton.setOnClickListener(new View.OnClickListener() {
 
             // @Override
             public void onClick(View v) {
 
-                if(false == bConfiged){
+                if(!bConfiged){
                     bConfiged = true;
                     uartInterface.SetConfig(baudRate, dataBit, stopBit, parity, flowControl);
                     savePreference();
                 }
 
-                if(true == bConfiged){
-                    configButton.setBackgroundColor(0xff888888); // color GRAY:0xff888888
+                if(bConfiged){
                     configButton.setText("Configured");
                 }
             }
@@ -122,8 +108,6 @@ public class SendData extends AppCompatActivity {
 
         uartInterface = new UARTInterface(this, sharePrefSettings);
 
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-
         handlerThread = new handler_thread(handler);
         handlerThread.start();
 
@@ -139,11 +123,11 @@ public class SendData extends AppCompatActivity {
         editor.remove("dataBit");
         editor.remove("parity");
         editor.remove("flowControl");
-        editor.commit();
+        editor.apply();
     }
 
     protected void savePreference() {
-        if(true == bConfiged){
+        if(bConfiged){
             sharePrefSettings.edit().putString("configed", "TRUE").apply();
             sharePrefSettings.edit().putInt("baudRate", baudRate).apply();
             sharePrefSettings.edit().putInt("stopBit", stopBit).apply();
@@ -152,7 +136,7 @@ public class SendData extends AppCompatActivity {
             sharePrefSettings.edit().putInt("flowControl", flowControl).apply();
         }
         else{
-            sharePrefSettings.edit().putString("configed", "FALSE").commit();
+            sharePrefSettings.edit().putString("configed", "FALSE").apply();
         }
     }
 
@@ -166,7 +150,7 @@ public class SendData extends AppCompatActivity {
         parity = (byte)sharePrefSettings.getInt("parity", 0);
         flowControl = (byte)sharePrefSettings.getInt("flowControl", 0);
 
-        if(true == bConfiged){
+        if(bConfiged){
             configButton.setText("Configured");
             configButton.setBackgroundColor(0xff888888); // color GRAY:0xff888888
 
