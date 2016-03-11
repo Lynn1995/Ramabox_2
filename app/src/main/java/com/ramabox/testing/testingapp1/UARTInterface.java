@@ -37,7 +37,6 @@ public class UARTInterface extends Activity
 	private byte [] usbdata; 
 	private byte []	writeusbdata;
 	private byte  [] readBuffer; /*circular buffer*/
-	private int readcount;
 	private int totalBytes;
 	private int writeIndex;
 	private int readIndex;
@@ -126,10 +125,7 @@ public class UARTInterface extends Activity
 		}
 
 		/*prepare the packet to be sent*/
-		for(int count = 0;count<numBytes;count++)
-		{	
-			writeusbdata[count] = buffer[count];
-		}
+		System.arraycopy(buffer, 0, writeusbdata, 0, numBytes);
 
 		if(numBytes != 64)
 		{
@@ -207,27 +203,25 @@ public class UARTInterface extends Activity
 		}
 		else
 		{
-			// return 2 for accessory detached case
-			//Log.e(">>@@","ResumeAccessory RETURN 2 (accessories == null)");
 			accessory_attached = false;
 			return 2;
 		}
 
 		UsbAccessory accessory = (accessories == null ? null : accessories[0]);
 		if (accessory != null) {
-			if( -1 == accessory.toString().indexOf(ManufacturerString))
+			if(!accessory.toString().contains(ManufacturerString))
 			{
 				Toast.makeText(global_context, "Manufacturer is not matched!", Toast.LENGTH_SHORT).show();
 				return 1;
 			}
 
-			if( -1 == accessory.toString().indexOf(ModelString1) && -1 == accessory.toString().indexOf(ModelString2))
+			if(!accessory.toString().contains(ModelString1) && !accessory.toString().contains(ModelString2))
 			{
 				Toast.makeText(global_context, "Model is not matched!", Toast.LENGTH_SHORT).show();
 				return 1;
 			}
 
-			if( -1 == accessory.toString().indexOf(VersionString))
+			if(!accessory.toString().contains(VersionString))
 			{
 				Toast.makeText(global_context, "Version is not matched!", Toast.LENGTH_SHORT).show();
 				return 1;
@@ -250,7 +244,7 @@ public class UARTInterface extends Activity
 					}
 				}
 			}
-		} else {}
+		}
 
 		return 0;
 	}
@@ -258,7 +252,7 @@ public class UARTInterface extends Activity
 	/*destroy accessory*/
 	public void DestroyAccessory(boolean bConfiged){
 
-		if(true == bConfiged){
+		if(bConfiged){
 			READ_ENABLE = false;  // set false condition for handler_thread to exit waiting data loop
 			writeusbdata[0] = 0;  // send dummy data for instream.read going
 			SendPacket(1);
@@ -272,7 +266,7 @@ public class UARTInterface extends Activity
 			READ_ENABLE = false;  // set false condition for handler_thread to exit waiting data loop
 			writeusbdata[0] = 0;  // send dummy data for instream.read going
 			SendPacket(1);
-			if(true == accessory_attached)
+			if(accessory_attached)
 			{
 				saveDefaultPreference();
 			}
@@ -300,7 +294,7 @@ public class UARTInterface extends Activity
 				return;
 			}
 
-			if(READ_ENABLE == false){
+			if(!READ_ENABLE){
 				READ_ENABLE = true;
 				readThread = new read_thread(inputstream);
 				readThread.start();
@@ -406,7 +400,7 @@ public class UARTInterface extends Activity
 
 		public void run()
 		{		
-			while(READ_ENABLE == true)
+			while(READ_ENABLE)
 			{
 				while(totalBytes > (maxnumbytes - 1024))
 				{
@@ -420,11 +414,11 @@ public class UARTInterface extends Activity
 				try
 				{
 					if(instream != null)
-					{	
-						readcount = instream.read(usbdata,0,1024);
+					{
+						int readcount = instream.read(usbdata, 0, 1024);
 						if(readcount > 0)
 						{
-							for(int count = 0;count<readcount;count++)
+							for(int count = 0;count< readcount;count++)
 							{					    			
 								readBuffer[writeIndex] = usbdata[count];
 								writeIndex++;
