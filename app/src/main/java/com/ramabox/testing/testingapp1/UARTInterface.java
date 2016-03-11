@@ -434,6 +434,9 @@ public class UARTInterface extends Activity
 						}
 					}
 				}
+
+
+
 				catch (IOException e){e.printStackTrace();}
 			}
 		}
