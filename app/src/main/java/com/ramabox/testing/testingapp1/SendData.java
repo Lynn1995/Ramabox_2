@@ -1,7 +1,6 @@
 package com.ramabox.testing.testingapp1;
 
 import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -10,23 +9,19 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-
-
-
 public class SendData extends AppCompatActivity {
-
-    /* thread to read the data */
+    // thread to read the data
     public handler_thread handlerThread;
 
-    /* declare a FT311 UART interface variable */
-    public UARTInterface uartInterface;
+    //interface variable
+    public UARTClass uart;
     StringBuffer readSB = new StringBuffer();
 
-    /* graphical objects */
-    EditText readText,writeText;
-    Button writeButton, configButton;
+    // buttons and textviews
+    EditText readTxt, writeTxt;
+    Button writeBtn, configBtn;
 
-    /* local variables */
+    // local variables
     byte[] writeBuffer;
     byte[] readBuffer;
     char[] readBufferToChar;
@@ -35,14 +30,8 @@ public class SendData extends AppCompatActivity {
     int numBytes;
     byte status;
 
-    int baudRate; /* baud rate */
-    byte stopBit; /* 1:1stop bits, 2:2 stop bits */
-    byte dataBit; /* 8:8bit, 7: 7bit */
-    byte parity; /* 0: none, 1: odd, 2: even, 3: mark, 4: space */
-    byte flowControl; /* 0:none, 1: flow control(CTS,RTS) */
     public boolean bConfiged = false;
     public SharedPreferences sharePrefSettings;
-    Drawable originalDrawable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,69 +40,51 @@ public class SendData extends AppCompatActivity {
 
         sharePrefSettings = getSharedPreferences("UARTLBPref", 0);
         /* create editable text objects */
-        readText = (EditText) findViewById(R.id.readText);
-        writeText = (EditText) findViewById(R.id.writeText);
-        configButton = (Button) findViewById(R.id.configBtn);
-        writeButton = (Button) findViewById(R.id.writeBtn);
+        readTxt = (EditText) findViewById(R.id.readText);
+        writeTxt = (EditText) findViewById(R.id.writeText);
+        configBtn = (Button) findViewById(R.id.configBtn);
+        writeBtn = (Button) findViewById(R.id.writeBtn);
 
-        originalDrawable = configButton.getBackground();
-
-      /* allocate buffer */
+        // alocate buffers
         writeBuffer = new byte[64];
         readBuffer = new byte[4096];
         readBufferToChar = new char[4096];
         actualNumBytes = new int[1];
-
-      /* setup the baud rate list */
-        baudRate = 9600;
-      /* stop bits */
-        stopBit = 1;
-      /* daat bits */
-        dataBit = 8;
-      /* parity */
-        parity = 0;
-      /* flow control */
-        flowControl = 0;
-
-        configButton.setOnClickListener(new View.OnClickListener() {
-
-            // @Override
-            public void onClick(View v) {
-
-                if(!bConfiged){
-                    bConfiged = true;
-                    uartInterface.SetConfig(baudRate, dataBit, stopBit, parity, flowControl);
-                    savePreference();
-                }
-
-                if(bConfiged){
-                    configButton.setText("Configured");
-                }
-            }
-
-        });
-
-      /* handle write click */
-        writeButton.setOnClickListener(new View.OnClickListener() {
-
-            // @Override
-            public void onClick(View v) {
-
-                if (writeText.length() != 0x00)
-                {
-                    writeData();
-                }
-            }
-        });
-
-        uartInterface = new UARTInterface(this, sharePrefSettings);
-
+        uart = new UARTClass(this, sharePrefSettings);
         handlerThread = new handler_thread(handler);
         handlerThread.start();
-
-
     }
 
+    // the button actions
+    public void writeClick(View v) {
+        if (writeTxt.length() != 0x00){
+            writeData(writeTxt.getText().toString());
+        }
+    }
+
+    public void configClick(View v){
+        if(!bConfiged){
+            bConfiged = true;
+            uart.setConfig();
+            savePreference();
+        } else if(bConfiged){
+            configBtn.setText("Configured");
+        }
+    }
+
+    public void ledOnClick(View v){
+        writeData("a");
+    }
+
+    public void ledOffClick(View v){
+        writeData("u");
+    }
+
+    public void deconfigClick(View v){
+        bConfiged = false;
+        configBtn.setText("Config");
+
+    }
 
     protected void cleanPreference(){
         SharedPreferences.Editor editor = sharePrefSettings.edit();
@@ -129,11 +100,11 @@ public class SendData extends AppCompatActivity {
     protected void savePreference() {
         if(bConfiged){
             sharePrefSettings.edit().putString("configed", "TRUE").apply();
-            sharePrefSettings.edit().putInt("baudRate", baudRate).apply();
-            sharePrefSettings.edit().putInt("stopBit", stopBit).apply();
-            sharePrefSettings.edit().putInt("dataBit", dataBit).apply();
-            sharePrefSettings.edit().putInt("parity", parity).apply();
-            sharePrefSettings.edit().putInt("flowControl", flowControl).apply();
+            sharePrefSettings.edit().putInt("baudRate", 9600).apply();
+            sharePrefSettings.edit().putInt("stopBit", 1).apply();
+            sharePrefSettings.edit().putInt("dataBit", 8).apply();
+            sharePrefSettings.edit().putInt("parity", 0).apply();
+            sharePrefSettings.edit().putInt("flowControl", 0).apply();
         }
         else{
             sharePrefSettings.edit().putString("configed", "FALSE").apply();
@@ -143,20 +114,8 @@ public class SendData extends AppCompatActivity {
     protected void restorePreference() {
         String key_name = sharePrefSettings.getString("configed", "");
         bConfiged = true == key_name.contains("TRUE");
-
-        baudRate = sharePrefSettings.getInt("baudRate", 9600);
-        stopBit = (byte)sharePrefSettings.getInt("stopBit", 1);
-        dataBit = (byte)sharePrefSettings.getInt("dataBit", 8);
-        parity = (byte)sharePrefSettings.getInt("parity", 0);
-        flowControl = (byte)sharePrefSettings.getInt("flowControl", 0);
-
         if(bConfiged){
-            configButton.setText("Configured");
-            configButton.setBackgroundColor(0xff888888); // color GRAY:0xff888888
-
-        }
-        else{
-            configButton.setBackgroundDrawable(originalDrawable);
+            configBtn.setText("Configured");
         }
     }
 
@@ -169,7 +128,7 @@ public class SendData extends AppCompatActivity {
         // Ideally should implement onResume() and onPause()
         // to take appropriate action when the activity looses focus
         super.onResume();
-        if( 2 == uartInterface.ResumeAccessory() )
+        if( 2 == uart.resumeAccessory() )
         {
             cleanPreference();
             restorePreference();
@@ -192,7 +151,7 @@ public class SendData extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        uartInterface.DestroyAccessory(bConfiged);
+        uart.destroyAccessory(bConfiged);
         super.onDestroy();
     }
 
@@ -200,9 +159,7 @@ public class SendData extends AppCompatActivity {
     final Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-
-            for(int i=0; i<actualNumBytes[0]; i++)
-            {
+            for(int i=0; i<actualNumBytes[0]; i++){
                 readBufferToChar[i] = (char)readBuffer[i];
             }
             appendData(readBufferToChar, actualNumBytes[0]);
@@ -229,7 +186,7 @@ public class SendData extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                status = uartInterface.ReadData(4096, readBuffer,actualNumBytes);
+                status = uart.readData(4096, readBuffer, actualNumBytes);
 
                 if (status == 0x00 && actualNumBytes[0] > 0) {
                     msg = mHandler.obtainMessage();
@@ -240,9 +197,8 @@ public class SendData extends AppCompatActivity {
         }
     }
 
-    public void writeData()
-    {
-        String srcStr = writeText.getText().toString();
+    public void writeData(String srcStr) {
+
         String destStr = "";
 
                 destStr = srcStr;
@@ -251,18 +207,16 @@ public class SendData extends AppCompatActivity {
         for (int i = 0; i < numBytes; i++) {
             writeBuffer[i] = (byte)destStr.charAt(i);
         }
-        uartInterface.SendData(numBytes, writeBuffer);
+        uart.sendData(numBytes, writeBuffer);
 
     }
 
-    public void appendData(char[] data, int len)
-    {
+    public void appendData(char[] data, int len){
         if(len >= 1)
             readSB.append(String.copyValueOf(data, 0, len));
 
-        readText.setText(readSB);
+        readTxt.setText(readSB);
 
     }
-
 
 }

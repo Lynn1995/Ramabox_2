@@ -9,7 +9,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 
 
@@ -54,15 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-
-
     public void sendCheck(View view){
-
-        Toast.makeText(getApplicationContext(), "You will can send your data in a minute", Toast.LENGTH_LONG).show();
-
-
         this.startActivity(new Intent(this, SendData.class));
-
     }
 }

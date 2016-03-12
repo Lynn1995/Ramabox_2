@@ -13,49 +13,73 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/readText"
+        android:hint="your data will be printed out here"
+        android:layout_centerVertical="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="108dp"
-        android:hint="your data will be printed out here" />
+        android:layout_alignParentStart="true" />
 
     <EditText
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/writeText"
-        android:layout_below="@+id/readText"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="81dp"
-        android:hint="write your text here" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="configBtn"
-        android:id="@+id/configBtn"
-        android:layout_below="@+id/writeText"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="102dp" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="writeBtn"
-        android:id="@+id/writeBtn"
+        android:hint="write your text here"
+        android:layout_marginTop="61dp"
         android:layout_below="@+id/configBtn"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="45dp" />
+        android:layout_alignParentStart="true" />
 
-    <TextView
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="configure first!"
-        android:id="@+id/textView2"
-        android:layout_below="@+id/writeText"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="35dp" />
+        android:text="config"
+        android:id="@+id/configBtn"
+        android:layout_alignTop="@+id/lenOnBtn"
+        android:layout_toLeftOf="@+id/writeBtn"
+        android:layout_toStartOf="@+id/writeBtn"
+        android:layout_marginRight="61dp"
+        android:layout_marginEnd="61dp"
+        android:onClick="configClick" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="write"
+        android:id="@+id/writeBtn"
+        android:layout_alignTop="@+id/configBtn"
+        android:layout_centerHorizontal="true"
+        android:onClick="writeClick" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Led Aan"
+        android:id="@+id/lenOnBtn"
+        android:layout_marginTop="64dp"
+        android:onClick="ledOnClick"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/ledOffBtn"
+        android:layout_toEndOf="@+id/ledOffBtn"
+        android:layout_marginLeft="53dp"
+        android:layout_marginStart="53dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Led uit"
+        android:id="@+id/ledOffBtn"
+        android:layout_alignBottom="@+id/lenOnBtn"
+        android:onClick="ledOffClick" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="deconfig"
+        android:id="@+id/deconfigBtn"
+        android:layout_alignBottom="@+id/writeBtn"
+        android:layout_toRightOf="@+id/writeBtn"
+        android:layout_toEndOf="@+id/writeBtn"
+        android:layout_marginLeft="64dp"
+        android:layout_marginStart="64dp"
+        android:onClick="deconfigClick" />
 
 </RelativeLayout>

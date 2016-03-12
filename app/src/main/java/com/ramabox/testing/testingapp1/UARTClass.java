@@ -21,7 +21,7 @@ import java.io.IOException;
 
 
 /******************************FT311 GPIO interface class******************************************/
-public class UARTInterface extends Activity
+public class UARTClass extends Activity
 {
 
 	private static final String ACTION_USB_PERMISSION = "com.UARTLoopback.USB_PERMISSION";
@@ -56,7 +56,7 @@ public class UARTInterface extends Activity
 	public SharedPreferences intsharePrefSettings;
 
 	/*constructor*/
-	public UARTInterface(Context context, SharedPreferences sharePrefSettings){
+	public UARTClass(Context context, SharedPreferences sharePrefSettings){
 		super();
 		global_context = context;
 		intsharePrefSettings = sharePrefSettings;
@@ -82,11 +82,9 @@ public class UARTInterface extends Activity
 		outputstream = null;
 	}
 
-
-	public void SetConfig(int baud, byte dataBits, byte stopBits,
-			byte parity, byte flowControl)
+	public void setConfig()
 	{
-
+		int baud = 9600;
 		/*prepare the baud rate buffer*/
 		writeusbdata[0] = (byte)baud;
 		writeusbdata[1] = (byte)(baud >> 8);
@@ -94,21 +92,20 @@ public class UARTInterface extends Activity
 		writeusbdata[3] = (byte)(baud >> 24);
 
 		/*data bits*/
-		writeusbdata[4] = dataBits;
+		writeusbdata[4] = 8;
 		/*stop bits*/
-		writeusbdata[5] = stopBits;
+		writeusbdata[5] = 1;
 		/*parity*/
-		writeusbdata[6] = parity;
+		writeusbdata[6] = 0;
 		/*flow control*/
-		writeusbdata[7] = flowControl;
+		writeusbdata[7] = 0;
 
 		/*send the UART configuration packet*/
-		SendPacket(8);
+		sendPacket(8);
 	}
 
-
 	/*write data*/
-	public byte SendData(int numBytes, byte[] buffer) 
+	public byte sendData(int numBytes, byte[] buffer)
 	{
 		status = 0x00; /*success by default*/
 		/*
@@ -129,21 +126,21 @@ public class UARTInterface extends Activity
 
 		if(numBytes != 64)
 		{
-			SendPacket(numBytes);
+			sendPacket(numBytes);
 		}
 		else
 		{
 			byte temp = writeusbdata[63];
-			SendPacket(63);
+			sendPacket(63);
 			writeusbdata[0] = temp;
-			SendPacket(1);
+			sendPacket(1);
 		}
 
 		return status;
 	}
 
 	/*read data*/
-	public byte ReadData(int numBytes,byte[] buffer, int [] actualNumBytes)
+	public byte readData(int numBytes, byte[] buffer, int[] actualNumBytes)
 	{
 		status = 0x00; /*success by default*/
 
@@ -177,7 +174,7 @@ public class UARTInterface extends Activity
 	}
 
 	/*method to send on USB*/
-	private void SendPacket(int numBytes)
+	private void sendPacket(int numBytes)
 	{	
 		try {
 			if(outputstream != null){
@@ -189,7 +186,7 @@ public class UARTInterface extends Activity
 	}
 
 	/*resume accessory*/
-	public int ResumeAccessory()
+	public int resumeAccessory()
 	{
 		// Intent intent = getIntent();
 		if (inputstream != null && outputstream != null) {
@@ -207,6 +204,7 @@ public class UARTInterface extends Activity
 			return 2;
 		}
 
+		// variable x = (expression) ? value if true : value if false
 		UsbAccessory accessory = (accessories == null ? null : accessories[0]);
 		if (accessory != null) {
 			if(!accessory.toString().contains(ManufacturerString))
@@ -231,15 +229,14 @@ public class UARTInterface extends Activity
 			accessory_attached = true;
 
 			if (usbmanager.hasPermission(accessory)) {
-				OpenAccessory(accessory);
+				openAccessory(accessory);
 			} 
 			else
 			{
 				synchronized (mUsbReceiver) {
 					if (!mPermissionRequestPending) {
 						Toast.makeText(global_context, "Request USB Permission", Toast.LENGTH_SHORT).show();
-						usbmanager.requestPermission(accessory,
-								mPermissionIntent);
+						usbmanager.requestPermission(accessory,mPermissionIntent);
 						mPermissionRequestPending = true;
 					}
 				}
@@ -250,22 +247,22 @@ public class UARTInterface extends Activity
 	}
 
 	/*destroy accessory*/
-	public void DestroyAccessory(boolean bConfiged){
+	public void destroyAccessory(boolean bConfiged){
 
 		if(bConfiged){
 			READ_ENABLE = false;  // set false condition for handler_thread to exit waiting data loop
 			writeusbdata[0] = 0;  // send dummy data for instream.read going
-			SendPacket(1);
+			sendPacket(1);
 		}
 		else
 		{
-			SetConfig(9600,(byte)1,(byte)8,(byte)0,(byte)0);  // send default setting data for config
+			setConfig();  // send default setting data for config
 			try{Thread.sleep(10);}
-			catch(Exception e){}
+			catch(Exception e){e.printStackTrace();}
 
 			READ_ENABLE = false;  // set false condition for handler_thread to exit waiting data loop
 			writeusbdata[0] = 0;  // send dummy data for instream.read going
-			SendPacket(1);
+			sendPacket(1);
 			if(accessory_attached)
 			{
 				saveDefaultPreference();
@@ -273,13 +270,13 @@ public class UARTInterface extends Activity
 		}
 
 		try{Thread.sleep(10);}
-		catch(Exception e){}			
-		CloseAccessory();
+		catch(Exception e){e.printStackTrace();}
+		closeAccessory();
 	}
 
 	/*********************helper routines*************************************************/		
 
-	public void OpenAccessory(UsbAccessory accessory)
+	public void openAccessory(UsbAccessory accessory)
 	{
 		filedescriptor = usbmanager.openAccessory(accessory);
 		if(filedescriptor != null){
@@ -302,25 +299,24 @@ public class UARTInterface extends Activity
 		}
 	}
 
-	private void CloseAccessory()
+	private void closeAccessory()
 	{
 		try{
 			if(filedescriptor != null)
 				filedescriptor.close();
 
-		}catch (IOException e){}
-
+		}catch (IOException e){e.printStackTrace();}
 		try {
 			if(inputstream != null)
 				inputstream.close();
-		} catch(IOException e){}
+		} catch(IOException e){e.printStackTrace();}
 
 		try {
 			if(outputstream != null)
 				outputstream.close();
 
-		}catch(IOException e){}
-		/*FIXME, add the notfication also to close the application*/
+		}catch(IOException e){e.printStackTrace();}
+		/*FIXME, add the notification also to close the application*/
 
 		filedescriptor = null;
 		inputstream = null;
@@ -334,19 +330,19 @@ public class UARTInterface extends Activity
 		{
 			intsharePrefSettings.edit()
 			.putString("configed", "FALSE")
-			.commit();
+			.apply();
 		}
 	}
 
 	protected void saveDefaultPreference() {
 		if(intsharePrefSettings != null)
 		{
-			intsharePrefSettings.edit().putString("configed", "TRUE").commit();
-			intsharePrefSettings.edit().putInt("baudRate", 9600).commit();
-			intsharePrefSettings.edit().putInt("stopBit", 1).commit();
-			intsharePrefSettings.edit().putInt("dataBit", 8).commit();
-			intsharePrefSettings.edit().putInt("parity", 0).commit();			
-			intsharePrefSettings.edit().putInt("flowControl", 0).commit();
+			intsharePrefSettings.edit().putString("configed", "TRUE").apply();
+			intsharePrefSettings.edit().putInt("baudRate", 9600).apply();
+			intsharePrefSettings.edit().putInt("stopBit", 1).apply();
+			intsharePrefSettings.edit().putInt("dataBit", 8).apply();
+			intsharePrefSettings.edit().putInt("parity", 0).apply();
+			intsharePrefSettings.edit().putInt("flowControl", 0).apply();
 		}
 	}
 
@@ -365,7 +361,7 @@ public class UARTInterface extends Activity
 					if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false))
 					{
 						Toast.makeText(global_context, "Allow USB Permission", Toast.LENGTH_SHORT).show();
-						OpenAccessory(accessory);
+						openAccessory(accessory);
 					} 
 					else 
 					{
@@ -379,8 +375,8 @@ public class UARTInterface extends Activity
 			else if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) 
 			{
 				saveDetachPreference();
-				DestroyAccessory(true);
-				//CloseAccessory();
+				destroyAccessory(true);
+				//closeAccessory();
 			}else
 			{
 				Log.d("LED", "....");
@@ -434,9 +430,6 @@ public class UARTInterface extends Activity
 						}
 					}
 				}
-
-
-
 				catch (IOException e){e.printStackTrace();}
 			}
 		}
